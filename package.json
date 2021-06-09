@@ -19,6 +19,7 @@
     "webpack-cli": "^4.7.0"
   },
   "scripts": {
+    "build": "npx webpack",
     "test": "mocha"
   }
 }
