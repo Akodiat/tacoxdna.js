@@ -14,6 +14,9 @@ A. Suma, E. Poppleton, M. Matthies, P. Šulc, F. Romano, A. A. Louis, J. P. K. D
 npm install
 npm run build
 ```
+You will find the bundled `tacoxdna.js` library in `dist/`.
+
+For an example of usage, see `index.html`, which you can try online at https://akodiat.github.io/tacoxdna.js
 
 # Run tests
 ```
