@@ -4,5 +4,10 @@ Written in typescript and bundled into a single javascript file using webpack.
 # Build instructions
 ```
 npm install
-npm build
+npm run build
+```
+
+# Run tests
+```
+npm test
 ```
