@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-+0n0xVW2eSR5OomGNYDnhzAbDsOXxcvSN1TPprVMTNDbiYZCxYbOOl7+AMvyTG2x" crossorigin="anonymous">
+
+    <title>tacoxDNA</title>
+
+    <style>
+        .vertical-center {
+            min-height: 100%;  /* Fallback for browsers do NOT support vh unit */
+            min-height: 100vh; /* These two lines are counted as one :-)       */
+
+            display: flex;
+            align-items: center;
+        }
+    </style>
+  </head>
+  <body>
+    <!-- Conversion form -->
+    <div class="vertical-center">
+        <div class="container">
+        <h1>TacoxDNA</h1>
+        <form id="convertForm">
+            <div class="mb-3">
+                <div class="mb-3">
+                    <label for="formFile" class="form-label">Input file</label>
+                    <input id="input" class="form-control" type="file" id="formFile" onchange="guessInputFormat(this.files)">
+                </div>
+            </div>
+            <div class="input-group mb-3">
+                <div class="input-group-prepend">
+                  <label class="input-group-text" for="fromSelect">Input format</label>
+                </div>
+                <select class="form-select" id="fromSelect" onchange="toggleInputOpts(this.value)">
+                  <option value="cadnano">caDNAno</option>
+                  <option value="rpoly">rpoly</option>
+                  <option value="pdb">PDB</option>
+                </select>
+            </div>
+            <div id="cadnanoInputOpts" class="input-group-sm">
+                <div class="input-group mb-3">
+                    <div class="input-group-prepend">
+                    <label class="input-group-text" for="cadnano_latticeType">CaDNAno lattice type</label>
+                    </div>
+                    <select class="form-select" id="cadnano_latticeType">
+                        <option value="sq">Square</option>
+                        <option value="he">Hexagonal</option>
+                    </select>
+                </div>
+                <div class="input-group mb-3">
+                    <div class="input-group-prepend">
+                    <label class="input-group-text" for="cadnano_scaffoldSeq">Scaffold sequence</label>
+                    </div>
+                    <input class="form-control" type="text" placeholder="RANDOM" id="cadnano_scaffoldSeq">
+                </div>
+            </div>
+            <div id="pdbInputOpts" class="input-group-sm" hidden>
+                <div class="mb-3 form-check">
+                    <input type="checkbox" class="form-check-input" id="pdb_models_as_strands">
+                    <label class="form-check-label" for="exampleCheck1">Interpret PDB models as separate strands</label>
+                </div>
+                <div class="input-group mb-3">
+                    <div class="input-group-prepend">
+                    <label class="input-group-text" for="pdb_input_strand_dir">Input strand direction</label>
+                    </div>
+                    <select class="form-select" id="pdb_input_strand_dir">
+                        <option value="53">5' → 3'</option>
+                        <option value="35">3' → 5'</option>
+                    </select>
+                </div>
+            </div>
+            <hr>
+            <div class="input-group mb-3">
+                <div class="input-group-prepend">
+                  <label class="input-group-text" for="toSelect">Output format</label>
+                </div>
+                <select class="form-select" id="toSelect">
+                  <option value="oxview">oxView</option>
+                  <option value="oxdna">oxDNA</option>
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary" id="convertButton">Convert</button>
+        </form>
+        <hr>
+        <samp id="output"></samp>
+        <div id="spinner" class="spinner-border text-primary" role="status" hidden="true">
+        </div>
+        </div>
+    </div>
+
+    <!-- Add bootstrap -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-gtEjrD/SeCtmISkJkNUaaKMoLD0//ElJ19smozuHV6z3Iehds+3Ulb9Bn9Plx0x4" crossorigin="anonymous"></script>
+    
+    <!-- Three.js is needed for linear algebra -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.129.0/build/three.min.js"></script>
+
+    <!-- Import bundled tacoxdna library -->
+    <script src="./dist/tacoxdna.js"></script>
+    <script>
+        tacoxdna.Logger.logFunction = (msg) => {
+            document.getElementById("output").innerHTML += msg + "<br>";
+        };
+
+        // Only show options for the selected input format
+        function toggleInputOpts(value) {
+            document.getElementById('cadnanoInputOpts').hidden = value !== 'cadnano';
+            document.getElementById('pdbInputOpts').hidden = value !== 'pdb';
+        }
+
+        // Try to guess format from file ending
+        function guessInputFormat(files) {
+            let from = document.getElementById('fromSelect');
+            for (const f of files) {
+                if (f.name.endsWith('.rpoly')) {
+                    from.value = 'rpoly'; break;
+                } else if (f.name.endsWith('.json')) {
+                    from.value = 'cadnano'; break;
+                } else if (f.name.endsWith('.pdb')) {
+                    from.value = 'pdb'; break;
+                }
+            }
+            toggleInputOpts(from.value);
+        }
+
+        function saveString(text, filename) {
+            let element = document.createElement('a');
+            element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+            element.setAttribute('download', filename);
+            element.style.display = 'none';
+            document.body.appendChild(element);
+            element.click();
+            document.body.removeChild(element);
+        }
+        const suffixes = new Map([
+            ['oxdna', ['top', 'conf']],
+            ['oxview', ['oxview']]
+        ]);
+
+        document.getElementById("convertForm").onsubmit = (e) => {
+            e.preventDefault();
+            let files = document.getElementById("input").files;
+            let from = document.getElementById("fromSelect").value;
+            let to = document.getElementById("toSelect").value;
+            let spinner = document.getElementById("spinner");
+            spinner.hidden = false;
+            let opts = {};
+            if (from === "cadnano") {
+                opts = {
+                    grid: document.getElementById("cadnano_latticeType").value,
+                    sequence: document.getElementById("cadnano_scaffoldSeq").value
+                };
+            } else if (from == "pdb") {
+                opts = {
+                    strand_dir: document.getElementById("pdb_input_strand_dir").value,
+                    models_as_strands: document.getElementById("pdb_models_as_strands").value
+                }
+            }
+            tacoxdna.Logger.log(`Converting ${[...files].map(f => f.name).join(',')} from ${from} to ${to}.`);
+            let readFiles = new Map();
+            for (const file of files) {
+                const reader = new FileReader();
+                reader.onload = function (evt) {
+                    readFiles.set(file, evt.target.result);
+                    console.log(`Finished reading ${readFiles.size} of ${files.length} files`);
+                    if (readFiles.size === files.length) {
+                        let converted = tacoxdna.convertFromTo([...readFiles.values()], from, to, opts);
+                        spinner.hidden = true;
+                        if (!Array.isArray(converted)) {
+                            converted = [converted];
+                        }
+                        let basename = file.name.split('.')[0];
+                        converted.forEach((out, i) => {
+                            let suffix = suffixes.get(to)[i];
+                            saveString(out, `${basename}.${suffix}`);
+                        });
+                        tacoxdna.Logger.log(`Conversion finished, downloading file${(converted.length > 1) ? 's' : ''}`);
+                    }
+                };
+                reader.readAsText(file);
+            }
+        }
+
+    </script>
+  </body>
+</html>

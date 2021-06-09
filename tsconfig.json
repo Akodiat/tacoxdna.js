@@ -1,0 +1,15 @@
+{
+    "compilerOptions": {
+        "outDir": "./dist",
+        "target": "ES2017", /* Specify ECMAScript target version: 'ES3' (default), 'ES5', 'ES2015', 'ES2016', 'ES2017','ES2018' or 'ESNEXT'. */
+        "module": "es6",    /* Specify module code generation: */
+        "declaration": true
+    },
+    "files": [
+        "./src/libs/utils.ts",
+        "./src/libs/base.ts",
+        "./src/libs/cadnano_utils.ts",
+        "./src/cadnanoLoader.ts",
+        "./src/tacoxdna.ts"
+    ]
+}

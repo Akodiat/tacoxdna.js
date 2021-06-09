@@ -1,0 +1,24 @@
+{
+  "name": "tacoxdna",
+  "version": "1.0.0",
+  "author": "Akodiat",
+  "description": "Convert between common DNA structure formats",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Akodiat/tacoxdna.js.git"
+  },
+  "main": "dist/tacoxdna.js",
+  "license": "GPL-3.0-or-later",
+  "devDependencies": {
+    "@types/three": "0.129.0",
+    "mocha": "^9.0.0",
+    "three": "0.129.0",
+    "ts-loader": "^9.2.2",
+    "typescript": "^4.3.2",
+    "webpack": "^5.38.1",
+    "webpack-cli": "^4.7.0"
+  },
+  "scripts": {
+    "test": "mocha"
+  }
+}

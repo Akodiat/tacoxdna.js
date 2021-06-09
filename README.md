@@ -1,2 +1,8 @@
-# tacoxdna.js
-A javascript library for converting between DNA nanostructure formats
+# TacoxDNA js library
+Written in typescript and bundled into a single javascript file using webpack.
+
+# Build instructions
+```
+npm install
+npx webpack
+```
