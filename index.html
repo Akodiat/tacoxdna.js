@@ -59,6 +59,14 @@
                     <input class="form-control" type="text" placeholder="RANDOM" id="cadnano_scaffoldSeq">
                 </div>
             </div>
+            <div id="rpolyInputOpts" class="input-group-sm" hidden>
+                <div class="input-group mb-3">
+                    <div class="input-group-prepend">
+                    <label class="input-group-text" for="rpoly_scaffoldSeq">Scaffold sequence</label>
+                    </div>
+                    <input class="form-control" type="text" placeholder="RANDOM" id="rpoly_scaffoldSeq">
+                </div>
+            </div>
             <div id="pdbInputOpts" class="input-group-sm" hidden>
                 <div class="mb-3 form-check">
                     <input type="checkbox" class="form-check-input" id="pdb_models_as_strands">
@@ -109,6 +117,7 @@
         // Only show options for the selected input format
         function toggleInputOpts(value) {
             document.getElementById('cadnanoInputOpts').hidden = value !== 'cadnano';
+            document.getElementById('rpolyInputOpts').hidden = value !== 'rpoly';
             document.getElementById('pdbInputOpts').hidden = value !== 'pdb';
         }
 
@@ -154,6 +163,10 @@
                     grid: document.getElementById("cadnano_latticeType").value,
                     sequence: document.getElementById("cadnano_scaffoldSeq").value
                 };
+            } else if (from == "rpoly") {
+                opts = {
+                    sequence: document.getElementById("rpoly_scaffoldSeq").value
+                }
             } else if (from == "pdb") {
                 opts = {
                     strand_dir: document.getElementById("pdb_input_strand_dir").value,

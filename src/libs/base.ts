@@ -673,7 +673,7 @@ class System {
 
     print_oxview_output() {
         let out = {
-            'box': this._box.toArray(),
+            'box': this._box.round().toArray(),
             'systems': [{'id':0, 'strands': []}]
         }
 

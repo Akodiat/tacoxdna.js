@@ -11,7 +11,7 @@ function move_along_vector(point: THREE.Vector3, vector: THREE.Vector3, length) 
     return point.clone().sub(vector.clone().multiplyScalar(move_distance));
 }
 
-function loadRpoly(source_file: string) {
+function loadRpoly(source_file: string, scaffold_seq?: string) {
     // Read File
     // 'data' stores helix coordinates + rotaion in quaternion
     let data = [];
@@ -43,7 +43,7 @@ function loadRpoly(source_file: string) {
     
     // temporary system to store staple fragments before later connecting them
     let staple_fragments = new base.System(new THREE.Vector3(100, 100, 100));
-    let scaffold_fragments = new base.System(new THREE.Vector3(100,100,100))
+    let scaffold_fragments = new base.System(new THREE.Vector3(100,100,100));
     
     // Reads orientation from the "data" and produces rotations from the Quaternian coordinates
     let largest_size = 0;
@@ -52,10 +52,10 @@ function loadRpoly(source_file: string) {
     
         // 0.84 scaling is ad hoc solution to get good looking models
         let position = new THREE.Vector3(
-            parseFloat(i[3]) / 0.84,
-            parseFloat(i[4]) / 0.84,
-            parseFloat(i[5]) / 0.84
-        );
+            parseFloat(i[3]),
+            parseFloat(i[4]),
+            parseFloat(i[5])
+        ).divideScalar(0.84);
         
         let n_bp = parseInt(i[2])
         
@@ -108,8 +108,40 @@ function loadRpoly(source_file: string) {
         scaffold_strand = scaffold_strand.append(next_segment);
     }
 
+    if (scaffold_seq !== undefined) {
+        if (scaffold_strand.N > scaffold_seq.length) {
+            base.Logger.log(
+                `Provided scaffold sequence is ${scaffold_seq.length}nt `+
+                `but needs to be at least ${scaffold_strand.N} to cover the scaffold. `+
+                `Using random sequence instead.`
+            );
+        } else {
+            scaffold_strand._nucleotides.forEach((n,i)=>{
+                n._base = base.base_to_number[scaffold_seq[scaffold_strand.N-i-1]];
+                if (n.pair) {
+                    n.pair._base = 3 - n._base;
+                }
+            });
+        }
+    }
+
     scaffold_strand.make_circular();
     output_system.add_strand(scaffold_strand);
+
+    // Update nucleotide indices
+    let nuc_id_count = 0;
+    let strand_id_count = 0;
+    for(const s of output_system._strands) {
+        s.index = strand_id_count++;
+        s._nucleotides.forEach((n,i)=>{
+            n.index = nuc_id_count++;
+            if (i === 0) {
+                s._first = n.index;
+            } else if (i == s.N - 1) {
+                s._last = n.index;
+            }
+        });
+    }
 
     return output_system;
 }

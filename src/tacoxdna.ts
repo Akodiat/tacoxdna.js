@@ -10,7 +10,7 @@ function convertFromTo(inputs: string[], from: string, to: string, opts) {
             sys = loadCadnano(inputs[0], opts.grid, opts.sequence, opts.side);
             break;
         case 'rpoly':
-            sys = loadRpoly(inputs[0]);
+            sys = loadRpoly(inputs[0], opts.sequence);
             break;
         case 'pdb':
             sys = loadPDB(inputs[0], opts.strand_dir, opts.models_as_strands);
