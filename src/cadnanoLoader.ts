@@ -1085,14 +1085,6 @@ function loadCadnano(source_file: string, grid: string, scaffold_seq?: string, s
             vh_vb2nuc_final.add_strand(join[joining_range[joining_range.length-1] + 1], vh_vb2nuc, false);
         }
     }
-/*
-    if (sequences && single_strand_system) {
-        if (final_sys._strands.length > 1) {
-            base.Logger.log("more than one strand detected - sequence file will not be read", base.Logger.WARNING)
-            final_sys._strands[0].sequence = np.random.randint(0, 4, final_sys._strands[0]._nucleotides.length)  //  this line does not work
-        }
-    }
-*/
 
     //  Fix to reverse the direction of every strand so that the 3' to 5' direction is the same
     //  as in Cadnano. In cadnano the strands point in the 5' to 3' direction, whereas in oxDNA
@@ -1189,9 +1181,6 @@ function loadCadnano(source_file: string, grid: string, scaffold_seq?: string, s
     }
     let scaffold_index = getMostCommon(strands)[0];
 
-    //  Make one cluster per domain
-    let cluster_ids = new cu.PairMap();
-
     //  Go through system and add extra information
     //  (basepairs, clusters and colors)
     for (const s of rev_sys._strands) {
@@ -1211,13 +1200,6 @@ function loadCadnano(source_file: string, grid: string, scaffold_seq?: string, s
                 if (staple_ids.length > 0) {
                     let staple_nuc: base.Nucleotide = id_to_nucleotide.get(staple_ids[0]);
 
-                    //  One cluster per combination of helix and staple strand
-                    const cid: [number, number] = [vh, staple_nuc.strand];
-                    if (!cluster_ids.has(cid)) {
-                        cluster_ids.set(cid, cluster_ids.size+1)
-                    }
-                    n.cluster = cluster_ids.get(cid);
-
                     //  If this is the staple strand, check if it has a color
                     if (n === staple_nuc) {
                         if (pos_to_color.has([vh, vb])) {
@@ -1226,8 +1208,6 @@ function loadCadnano(source_file: string, grid: string, scaffold_seq?: string, s
                     } else {
                         n.color = 3633362; // Make scaffold blue
                     }
-                } else {
-                    n.cluster = -1;
                 }
             }
         }
@@ -1241,6 +1221,100 @@ function loadCadnano(source_file: string, grid: string, scaffold_seq?: string, s
                     other.color = n.color;
                 }
                 break;
+            }
+        }
+    }
+
+    //  Calc clusters
+    let clusterEnds = new Set<base.Nucleotide>();
+    let n3s = new Map<base.Nucleotide, base.Nucleotide>();
+    let n5s = new Map<base.Nucleotide, base.Nucleotide>();
+    let tooDistant = (n1, n2) => {
+        let backbone_backbone_dist = n1.distance(n2, false);
+        let absolute_bb_dist = Math.sqrt(backbone_backbone_dist.dot(backbone_backbone_dist));
+        return absolute_bb_dist > 1.0018;
+    };
+    for (const s of rev_sys._strands) {
+        const nNuc = s.N;
+        for (let i=0; i<nNuc-1; i++) {
+            const n1 = s._nucleotides[i];
+            const n2 = s._nucleotides[i+1];
+            n3s.set(n2, n1);
+            n5s.set(n1, n2);
+            if (tooDistant(n1, n2)) {
+                clusterEnds.add(n1);
+                clusterEnds.add(n2);
+            }
+        }
+    }
+    let getNeigbours = (n: base.Nucleotide) => {
+        const ns = [];
+        if (n.pair !== undefined) {
+            ns.push(n.pair);
+        }
+        let n3 = n3s.get(n);
+        let n5 = n5s.get(n);
+        if (n3 !== undefined) {
+            ns.push(n3);
+        }
+        if (n5 !== undefined) {
+            ns.push(n5);
+        }
+        return ns;
+    };
+    let mergeClusters = (c1: number, c2: number) => {
+        const newC = Math.min(c1, c2);
+        base.Logger.log(`Merging cluster ${Math.max(c1, c2)} into ${newC}`);
+        for (const s of rev_sys._strands) {
+            for (const n of s._nucleotides) {
+                if (n.cluster === c1 || n.cluster === c2) {
+                    n.cluster = newC;
+                }
+            }
+        }
+    }
+    let expandCluster = (nStart: base.Nucleotide) => {
+        // Use a stack, since recursion creates an overflow...
+        let expandStack = [nStart];
+
+        while (expandStack.length > 0) {
+            let n1 = expandStack.pop();
+            // Check connected nucleotides
+            const ns = getNeigbours(n1);
+            for (const n2 of ns) {
+                // If we reach another cluster
+                if (n2.cluster !== n1.cluster) {
+                    // If it is unassigned
+                    if (n2.cluster === undefined) {
+                        // Assign the current cluster and continue expanding
+                        n2.cluster = n1.cluster;
+                        expandStack.push(n2);
+                    // Or if it is already set
+                    } else {
+                        // If we are at a long backbone bond (between clusters)
+                        if (clusterEnds.has(n1) && clusterEnds.has(n2)) {
+                            base.Logger.log("Reached another cluster gap");
+                        } else {
+                            // If not, we should merge the two clusters
+                            mergeClusters(n1.cluster, n2.cluster);
+                        }
+                    }
+                }
+            }
+        }
+    };
+    let clusterCounter = 1;
+    for (const clusterEnd of clusterEnds) {
+        clusterEnd.cluster = clusterCounter++;
+    }
+    for (const clusterEnd of clusterEnds) {
+        expandCluster(clusterEnd);
+    }
+    // Use single cluster if no cluster ends were found;
+    if (clusterEnds.size === 0) {
+        for (const s of rev_sys._strands) {
+            for (const n of s._nucleotides) {
+                n.cluster = 1;
             }
         }
     }
