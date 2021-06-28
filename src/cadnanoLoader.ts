@@ -1264,7 +1264,6 @@ function loadCadnano(source_file: string, grid: string, scaffold_seq?: string, s
     };
     let mergeClusters = (c1: number, c2: number) => {
         const newC = Math.min(c1, c2);
-        base.Logger.log(`Merging cluster ${Math.max(c1, c2)} into ${newC}`);
         for (const s of rev_sys._strands) {
             for (const n of s._nucleotides) {
                 if (n.cluster === c1 || n.cluster === c2) {
@@ -1291,11 +1290,9 @@ function loadCadnano(source_file: string, grid: string, scaffold_seq?: string, s
                         expandStack.push(n2);
                     // Or if it is already set
                     } else {
-                        // If we are at a long backbone bond (between clusters)
-                        if (clusterEnds.has(n1) && clusterEnds.has(n2)) {
-                            base.Logger.log("Reached another cluster gap");
-                        } else {
-                            // If not, we should merge the two clusters
+                        // Unless we are at a long backbone bond (between
+                        // clusters), merge the two clusters
+                        if (!(clusterEnds.has(n1) && clusterEnds.has(n2))) {
                             mergeClusters(n1.cluster, n2.cluster);
                         }
                     }
