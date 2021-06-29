@@ -1,5 +1,6 @@
 import * as THREE from 'three'
 import * as base from "./libs/base";
+import * as utils from "./libs/utils"
 import * as cu from "./libs/cadnano_utils";
 
 
@@ -72,7 +73,7 @@ function loadRpoly(source_file: string, scaffold_seq?: string) {
         }
 
         // strand 0 is the scaffold and strand 1 is the staple
-        let new_strands = generator.generate_or_sq(n_bp, undefined, new_position,vec, vec2);
+        let new_strands = generator.generate_or_sq(n_bp, new_position,vec, vec2);
 
         // cluster nucleotide by helix
         for(const i of [0,1])  {
@@ -108,22 +109,29 @@ function loadRpoly(source_file: string, scaffold_seq?: string) {
         scaffold_strand = scaffold_strand.append(next_segment);
     }
 
-    if (scaffold_seq !== undefined) {
+    let scaffold_bases: number[];
+    if (scaffold_seq) {
         if (scaffold_strand.N > scaffold_seq.length) {
             base.Logger.log(
                 `Provided scaffold sequence is ${scaffold_seq.length}nt `+
-                `but needs to be at least ${scaffold_strand.N} to cover the scaffold. `+
-                `Using random sequence instead.`
+                `but needs to be at least ${scaffold_strand.N} to cover the scaffold. `
             );
         } else {
-            scaffold_strand._nucleotides.forEach((n,i)=>{
-                n._base = base.base_to_number[scaffold_seq[scaffold_strand.N-i-1]];
-                if (n.pair) {
-                    n.pair._base = 3 - n._base;
-                }
-            });
+            base.Logger.log("Applying custom sequence");
+            scaffold_bases = Array.from(scaffold_seq).map(b=>base.base_to_number[b]);
         }
     }
+    if (scaffold_bases === undefined) {
+        base.Logger.log("Applying random sequence");
+        scaffold_bases = utils.randint(0, 4, scaffold_strand.N) as number[];
+    }
+
+    scaffold_strand._nucleotides.forEach((n,i)=>{
+        n._base = scaffold_bases[scaffold_strand.N-i-1];
+        if (n.pair) {
+            n.pair._base = 3 - n._base;
+        }
+    });
 
     scaffold_strand.make_circular();
     output_system.add_strand(scaffold_strand);

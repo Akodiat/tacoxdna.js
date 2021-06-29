@@ -225,7 +225,7 @@ class StrandGenerator {
         }
     }
 
-    generate_or_sq(bp: number, sequence=undefined, start_pos=new THREE.Vector3(0., 0., 0.), direction=new THREE.Vector3(0., 0., 1.), perp=undefined, double=true, rot=0., angle: number | number[] = Math.PI / 180 * 33.75, length_change=[], region_begin=[], region_end=[]) {
+    generate_or_sq(bp: number, start_pos=new THREE.Vector3(0., 0., 0.), direction=new THREE.Vector3(0., 0., 1.), perp=undefined, double=true, rot=0., angle: number | number[] = Math.PI / 180 * 33.75, length_change=[], region_begin=[], region_end=[]) {
         if (length_change && region_begin.length != region_end.length) {
             if ((region_end.length + 1) === region_begin.length) {
                 base.Logger.log(`the lengths of begin ${region_begin.length} and end ${region_end.length} arrays are mismatched; I will try to proceed by using the number of basepairs as the last element of the end array`, base.Logger.WARNING)
@@ -235,13 +235,6 @@ class StrandGenerator {
             }
         }
 
-        if (sequence === undefined) {
-            sequence = utils.randint(0, 4, bp);
-        } else if (sequence.length != bp) {
-            let n = bp - sequence.length;
-            sequence += utils.randint(0, 4, n)
-            base.Logger.log(`sequence is too short, adding ${n} random bases`, base.Logger.WARNING);
-        }
         //  angle should be an array, with a length 1 less than the # of base pairs
         if (!Array.isArray(angle)) {
             let tmp = angle;
@@ -252,9 +245,6 @@ class StrandGenerator {
         } else if (angle.length != bp - 1) {
             base.Logger.log("generate_or_sq: incorrect angle array length, should be 1 less than number of base pairs", base.Logger.CRITICAL);
         }
-        //  create the sequence of the second strand as made of complementary bases
-        let sequence2 = sequence.map(s=>3 - s);
-        sequence2.reverse();
 
         //  we need to find a vector orthogonal to direction
         let dir_norm = Math.sqrt(direction.dot(direction));
@@ -281,7 +271,10 @@ class StrandGenerator {
         let Rs = [];
 
         for(let i=0; i<bp; i++) {
-            ns1.add_nucleotide(new base.Nucleotide(rb.clone().sub(a1.clone().multiplyScalar(base.CM_CENTER_DS)), a1, a3, sequence[i]));
+            ns1.add_nucleotide(new base.Nucleotide(
+                rb.clone().sub(a1.clone().multiplyScalar(base.CM_CENTER_DS)),
+                a1.clone(), a3.clone(), undefined)
+            );
             if (i != bp - 1) {
                 let R = new THREE.Quaternion().setFromAxisAngle(direction, angle[i]);
                 Rs.push(R);
@@ -307,7 +300,11 @@ class StrandGenerator {
             for(let i=0; i<bp; i++) {
                 //  create new nucleotide and save basepair info on both sides
                 let paired_nuc = ns1._nucleotides[bp-i-1];
-                let new_nuc = new base.Nucleotide(rb.clone().sub(a1.clone().multiplyScalar(base.CM_CENTER_DS)), a1.clone(), a3.clone(), sequence2[i], undefined, undefined, undefined, paired_nuc);
+                let new_nuc = new base.Nucleotide(
+                    rb.clone().sub(a1.clone().multiplyScalar(base.CM_CENTER_DS)),
+                    a1.clone(), a3.clone(), undefined, undefined, undefined,
+                    undefined, paired_nuc
+                );
                 paired_nuc.pair = new_nuc;
                 ns2.add_nucleotide(new_nuc)
                 if (i != bp - 1) {

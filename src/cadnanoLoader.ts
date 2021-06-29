@@ -143,7 +143,7 @@ function insert_loop_skip(start_pos, direction, perp, rot, helix_angles, vhelix:
     }
 
     let g = new cu.StrandGenerator();
-    let new_strands = g.generate_or_sq(helix_angles_new.length+1, undefined, start_pos,direction,perp, true, rot, helix_angles_new, length_change, new_nodes.begin, new_nodes.end);
+    let new_strands = g.generate_or_sq(helix_angles_new.length+1, start_pos,direction,perp, true, rot, helix_angles_new, length_change, new_nodes.begin, new_nodes.end);
 
     return new_strands;
 }
@@ -419,7 +419,7 @@ function generate_vhelices_origami_sq(vhelix_direction, vhelix_perp, h) {
         angles = helix_angles.slice().reverse();
     }
 
-    const strands = g.generate_or_sq(h.len, undefined, pos, direction, perp, true, rot, angles)
+    const strands = g.generate_or_sq(h.len, pos, direction, perp, true, rot, angles)
 
     return [strands, helix_angles, pos, rot, direction, perp];
 }
@@ -474,7 +474,7 @@ function generate_vhelices_origami_he(vhelix_direction: THREE.Vector3, vhelix_pe
         direction = vhelix_direction.clone();
         perp = vhelix_perp.clone();
         rot = 0.;
-        strands = g.generate_or_sq(h.len, undefined, pos, direction, perp, true, rot, helix_angles);
+        strands = g.generate_or_sq(h.len, pos, direction, perp, true, rot, helix_angles);
     } else {
         pos = new THREE.Vector3(h.col * Math.sqrt(3) * DIST_HEXAGONAL / 2, h.row * 3 * DIST_HEXAGONAL / 2 + DIST_HEXAGONAL / 2, (h.len - 1) * base.BASE_BASE);
         direction = vhelix_direction.clone().negate();
@@ -485,7 +485,7 @@ function generate_vhelices_origami_he(vhelix_direction: THREE.Vector3, vhelix_pe
             rot = -utils.sum(...helix_angles) % (2 * Math.PI);
         }
         let angles = helix_angles.slice().reverse();
-        strands = g.generate_or_sq(h.len, undefined, pos, direction, perp, true, rot, angles);
+        strands = g.generate_or_sq(h.len, pos, direction, perp, true, rot, angles);
     }
 
     return [strands, helix_angles, pos, rot, direction, perp];
@@ -1316,23 +1316,30 @@ function loadCadnano(source_file: string, grid: string, scaffold_seq?: string, s
         }
     }
 
-    // Set scaffold sequence, if provided
+    // Set scaffold sequence
+    let scaffold_strand = rev_sys._strands[scaffold_index];
+    let scaffold_bases: number[];
     if (scaffold_seq) {
-        let scaffold = rev_sys._strands[scaffold_index];
-        if (scaffold.N > scaffold_seq.length) {
+        if (scaffold_strand.N > scaffold_seq.length) {
             base.Logger.log(
                 `Provided scaffold sequence is ${scaffold_seq.length}nt `+
-                `but needs to be at least ${scaffold.N} to cover the scaffold. `+
-                `Using random sequence instead.`
+                `but needs to be at least ${scaffold_strand.N} to cover the scaffold. `
             );
         } else {
-            for (let nuc_i=0; nuc_i<scaffold.N; nuc_i++) {
-                let n = scaffold._nucleotides[nuc_i];
-                n._base = base.base_to_number[scaffold_seq[scaffold.N-nuc_i-1]];
-                if (n.pair) {
-                    n.pair._base = 3 - n._base;
-                }
-            }
+            base.Logger.log("Applying custom sequence");
+            scaffold_bases = Array.from(scaffold_seq).map(b=>base.base_to_number[b]);
+        }
+    }
+    if (scaffold_bases === undefined) {
+        base.Logger.log("Applying random sequence");
+        scaffold_bases = utils.randint(0, 4, scaffold_strand.N) as number[];
+    }
+
+    for (let nuc_i=0; nuc_i<scaffold_strand.N; nuc_i++) {
+        let n = scaffold_strand._nucleotides[nuc_i];
+        n._base = scaffold_bases[scaffold_strand.N-nuc_i-1];
+        if (n.pair) {
+            n.pair._base = 3 - n._base;
         }
     }
 

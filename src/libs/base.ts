@@ -1,4 +1,5 @@
 import * as THREE from 'three'
+import * as utils from './utils'
 /*
 Utility functions.
 base.py includes the classes: System, Strand, Nucleotide
@@ -138,6 +139,11 @@ class Nucleotide {
         this.cm_pos = cm_pos.clone();
         this._a1 = a1.clone().normalize();
         this._a3 = a3.clone().normalize();
+
+        // Set random base if undefined
+        if (base === undefined) {
+            base = utils.randint(0,4) as number;
+        }
         //  base should be an integer
         if (typeof base === "string") {
             try {

@@ -2,7 +2,7 @@ import * as base from "./base";
 import * as THREE from 'three';
 declare class StrandGenerator {
     generate(bp: any, sequence?: any, start_pos?: THREE.Vector3, direction?: THREE.Vector3, perp?: any, rot?: number, double?: boolean, circular?: boolean, DELTA_LK?: number, BP_PER_TURN?: number, ds_start?: any, ds_end?: any, force_helicity?: boolean): base.Strand | base.Strand[];
-    generate_or_sq(bp: number, sequence?: any, start_pos?: THREE.Vector3, direction?: THREE.Vector3, perp?: any, double?: boolean, rot?: number, angle?: number | number[], length_change?: any[], region_begin?: any[], region_end?: any[]): base.Strand | base.Strand[];
+    generate_or_sq(bp: number, start_pos?: THREE.Vector3, direction?: THREE.Vector3, perp?: any, double?: boolean, rot?: number, angle?: number | number[], length_change?: any[], region_begin?: any[], region_end?: any[]): base.Strand | base.Strand[];
     generate_double_offset(seqA: string | number[], seqB: string | number[], offset: any, start_pos?: THREE.Vector3, direction?: THREE.Vector3, perp?: any, rot?: number): base.Strand[];
     generate_rw(sequence: any, start_pos?: THREE.Vector3): base.Strand;
 }
