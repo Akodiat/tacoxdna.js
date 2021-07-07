@@ -773,6 +773,99 @@ class System {
         }
         return nupack_string;
     }
+
+    calc_clusters(max_bb_dist = 1.0018) {
+        //  Calc clusters
+        let clusterEnds = new Set<Nucleotide>();
+        let n3s = new Map<Nucleotide, Nucleotide>();
+        let n5s = new Map<Nucleotide, Nucleotide>();
+        let tooDistant = (n1, n2) => {
+            let backbone_backbone_dist = n1.distance(n2, false);
+            let absolute_bb_dist = Math.sqrt(backbone_backbone_dist.dot(backbone_backbone_dist));
+            return absolute_bb_dist > max_bb_dist;
+        };
+        for (const s of this._strands) {
+            const nNuc = s.N;
+            for (let i=0; i<nNuc-1; i++) {
+                const n1 = s._nucleotides[i];
+                const n2 = s._nucleotides[i+1];
+                n3s.set(n2, n1);
+                n5s.set(n1, n2);
+                if (tooDistant(n1, n2)) {
+                    clusterEnds.add(n1);
+                    clusterEnds.add(n2);
+                }
+            }
+        }
+        let getNeigbours = (n: Nucleotide) => {
+            const ns = [];
+            if (n.pair !== undefined) {
+                ns.push(n.pair);
+            }
+            let n3 = n3s.get(n);
+            let n5 = n5s.get(n);
+            if (n3 !== undefined) {
+                ns.push(n3);
+            }
+            if (n5 !== undefined) {
+                ns.push(n5);
+            }
+            return ns;
+        };
+        let mergeClusters = (c1: number, c2: number) => {
+            const newC = Math.min(c1, c2);
+            for (const s of this._strands) {
+                for (const n of s._nucleotides) {
+                    if (n.cluster === c1 || n.cluster === c2) {
+                        n.cluster = newC;
+                    }
+                }
+            }
+        }
+        let expandCluster = (nStart: Nucleotide) => {
+            // Use a stack, since recursion creates an overflow...
+            let expandStack = [nStart];
+
+            while (expandStack.length > 0) {
+                let n1 = expandStack.pop();
+                // Check connected nucleotides
+                const ns = getNeigbours(n1);
+                for (const n2 of ns) {
+                    // If we reach another cluster
+                    if (n2.cluster !== n1.cluster) {
+                        // If it is unassigned
+                        if (n2.cluster === undefined) {
+                            // Assign the current cluster and continue expanding
+                            n2.cluster = n1.cluster;
+                            expandStack.push(n2);
+                        // Or if it is already set
+                        } else {
+                            // Unless we are at a long backbone bond (between
+                            // clusters), merge the two clusters
+                            if (!(clusterEnds.has(n1) && clusterEnds.has(n2))) {
+                                mergeClusters(n1.cluster, n2.cluster);
+                            }
+                        }
+                    }
+                }
+            }
+        };
+        let clusterCounter = 1;
+        for (const clusterEnd of clusterEnds) {
+            clusterEnd.cluster = clusterCounter++;
+        }
+        for (const clusterEnd of clusterEnds) {
+            expandCluster(clusterEnd);
+        }
+        // Use single cluster if no cluster ends were found;
+        if (clusterEnds.size === 0) {
+            for (const s of this._strands) {
+                for (const n of s._nucleotides) {
+                    n.cluster = 1;
+                }
+            }
+        }
+    }
 }
 
 export {System, Strand, Nucleotide, Logger,

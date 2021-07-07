@@ -97,6 +97,8 @@ function create_system(bases: TiamatBase[], isDNA=true) {
     });
     base.Logger.log(`Added base pairs strands`);
 
+    sys.calc_clusters();
+
     return sys;
 }
 

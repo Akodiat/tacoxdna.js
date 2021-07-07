@@ -1,5 +1,4 @@
 var assert = require('assert');
-//const THREE = require('three');
 const tacoxdna = require('./dist/tacoxdna.js');
 
 const fs = require('fs');

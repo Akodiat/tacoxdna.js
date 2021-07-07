@@ -140,5 +140,6 @@ declare class System {
     get _nucleotides(): any[];
     map_nucleotides_to_strands(): void;
     print_dot_bracket_output(): string;
+    calc_clusters(max_bb_dist?: number): void;
 }
 export { System, Strand, Nucleotide, Logger, base_to_number, FLT_EPSILON, POS_BACK, POS_STACK, POS_BASE, CM_CENTER_DS, FENE_R0_OXDNA, FENE_EPS, LENGTH_FACT, BASE_BASE, INT_HYDR, INT_STACK, INT_CROSS_STACK, INT_COAX_STACK, INT_FENE, INT_EXC_BONDED, INT_EXC_NONBONDED, H_CUTOFF, MM_GROOVING, };
