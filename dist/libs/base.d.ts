@@ -123,6 +123,7 @@ declare class System {
     E_pot: number;
     E_kin: number;
     E_tot: number;
+    isDNA: boolean;
     constructor(box: THREE.Vector3, time?: number, E_pot?: number, E_kin?: number);
     get sequences(): number[][];
     get N(): number;

@@ -39,6 +39,7 @@
                 <select class="form-select" id="fromSelect" onchange="toggleInputOpts(this.value)">
                   <option value="cadnano">caDNAno</option>
                   <option value="rpoly">rpoly</option>
+                  <option value="tiamat">Tiamat</option>
                   <option value="pdb">PDB</option>
                 </select>
             </div>
@@ -65,6 +66,38 @@
                     <label class="input-group-text" for="rpoly_scaffoldSeq">Scaffold sequence</label>
                     </div>
                     <input class="form-control" type="text" placeholder="RANDOM" id="rpoly_scaffoldSeq">
+                </div>
+            </div>
+            <div id="tiamatInputOpts" class="input-group-sm" hidden>
+                <div class="input-group mb-3">
+                    <div class="input-group-prepend">
+                    <label class="input-group-text" for="tiamat_version">Tiamat version</label>
+                    </div>
+                    <select class="form-select" id="tiamat_version">
+                        <option value="1">2</option>
+                        <option value="2" selected>3</option>
+                    </select>
+                </div>
+                <div class="input-group mb-3">
+                    <div class="input-group-prepend">
+                    <label class="input-group-text" for="tiamat_isDNA">Nucleic acid type</label>
+                    </div>
+                    <select class="form-select" id="tiamat_isDNA">
+                        <option value="DNA" selected>DNA</option>
+                        <option value="RNA">RNA</option>
+                    </select>
+                </div>
+                <div class="input-group mb-3">
+                    <div class="input-group-prepend">
+                    <label class="input-group-text" for="tiamat_default_val">Default base</label>
+                    </div>
+                    <select class="form-select" id="tiamat_default_val">
+                        <option value="R" selected>Random</option>
+                        <option value="A">A</option>
+                        <option value="C">C</option>
+                        <option value="G">G</option>
+                        <option value="T">T</option>
+                    </select>
                 </div>
             </div>
             <div id="pdbInputOpts" class="input-group-sm" hidden>
@@ -119,6 +152,7 @@
             document.getElementById('cadnanoInputOpts').hidden = value !== 'cadnano';
             document.getElementById('rpolyInputOpts').hidden = value !== 'rpoly';
             document.getElementById('pdbInputOpts').hidden = value !== 'pdb';
+            document.getElementById('tiamatInputOpts').hidden = value !== 'tiamat';
         }
 
         // Try to guess format from file ending
@@ -129,6 +163,8 @@
                     from.value = 'rpoly'; break;
                 } else if (f.name.endsWith('.json')) {
                     from.value = 'cadnano'; break;
+                } else if (f.name.endsWith('.dnajson')) {
+                    from.value = 'tiamat'; break;
                 } else if (f.name.endsWith('.pdb')) {
                     from.value = 'pdb'; break;
                 }
@@ -166,6 +202,12 @@
             } else if (from == "rpoly") {
                 opts = {
                     sequence: document.getElementById("rpoly_scaffoldSeq").value
+                }
+            } else if (from == "tiamat") {
+                opts = {
+                    tiamat_version: parseInt(document.getElementById("tiamat_version").value),
+                    isDNA: document.getElementById("tiamat_isDNA").value == "DNA",
+                    default_val: document.getElementById("tiamat_default_val").value
                 }
             } else if (from == "pdb") {
                 opts = {

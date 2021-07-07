@@ -540,6 +540,7 @@ class System {
     E_pot: number;
     E_kin: number;
     E_tot: number;
+    isDNA: boolean;
 
     constructor(box: THREE.Vector3, time=0, E_pot=0, E_kin=0) {
         this._time = time;
@@ -552,6 +553,7 @@ class System {
         this.E_pot = E_pot;
         this.E_kin = E_kin;
         this.E_tot = E_pot + E_kin;
+        this.isDNA = true;
         
         Nucleotide.index = 0;
         Strand.index = 0;
@@ -718,7 +720,7 @@ class System {
                 let nucleotide = {
                     'id': n.index,
                     'type': n.get_base(),
-                    'class': 'DNA',
+                    'class': this.isDNA ? 'DNA' : 'RNA',
                     'p': n.cm_pos.toArray(),
                     'a1': n._a1.toArray(),
                     'a3': n._a3.toArray()
