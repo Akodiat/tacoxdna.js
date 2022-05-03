@@ -2,14 +2,6 @@ import * as THREE from 'three'
 import * as base from "./libs/base";
 import * as utils from "./libs/utils";
 
-const DNA_BASES = new Map<string,number>([
-    ['A', 0],
-    ['C', 1],
-    ['G', 2],
-    ['T', 3],
-    ['U', 3]]
-);
-
 function loadTiamat(source_file: string, tiamat_version: number, isDNA=true, default_val="R") {
     let tiamat_version_fudge: number;
     if (tiamat_version === 1) {
@@ -21,7 +13,7 @@ function loadTiamat(source_file: string, tiamat_version: number, isDNA=true, def
     } else if (tiamat_version === 2) {
         tiamat_version_fudge = 1
     } else {
-        throw `tiamat_version should be either '1' or '2' (got '${tiamat_version}' instead`;
+        throw `tiamat_version should be either '1' or '2' (got '${tiamat_version}' instead)`;
     }
 
     const data = JSON.parse(source_file);
@@ -40,7 +32,7 @@ function loadTiamat(source_file: string, tiamat_version: number, isDNA=true, def
 function create_system(bases: TiamatBase[], isDNA=true) {
     // lookup bases by id
     let bases_by_id = new Map(bases.map(b=>[b.id, b]));
-    
+
     // Calc base vectors
     bases.forEach(b => {
         b.set_base_config(bases_by_id);
@@ -147,15 +139,15 @@ class TiamatBase {
         this.isDNA = isDNA;
         this.tiamat_version_fudge = tiamat_version_fudge;
         try {
-            this.val = DNA_BASES.get(obj['type'][0]);
+            this.val = base.base_to_number[obj['type'][0]];
         } catch {
+            const baseNames = ['A', 'C', 'G', isDNA ? 'T':'U']
             if (default_val == 'R') {
                 this.val = utils.randint(0,4) as number;
             } else {
-                this.val = DNA_BASES.get(default_val);
-                console.assert(this.val !== undefined, `Default base ${default_val} not supported, use one of ${DNA_BASES}`);
+                this.val = base.base_to_number[default_val];
+                console.assert(this.val !== undefined, `Default base ${default_val} not supported, use one of ${baseNames}`);
             }
-            const baseNames = ['A', 'C', 'G', isDNA ? 'T':'U']
             base.Logger.log(`WARNING: base n.${this.id} has no associated type, setting it to '${baseNames[this.val]}'`);
         }
         this.tiamat_pos = new THREE.Vector3().fromArray(obj['position']);
