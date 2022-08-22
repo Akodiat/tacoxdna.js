@@ -9,9 +9,6 @@ import * as base from "./base"
 import * as utils from "./utils"
 import * as THREE from 'three'
 
-const BP = "bp";
-const DEGREES = "degrees";
-
 
 class StrandGenerator {
 
@@ -78,17 +75,18 @@ class StrandGenerator {
                 base.Logger.die("Key Error: sequence is invalid")
             }
         }
-        let randInt = (max: number)=>Math.floor(Math.random()*max);
         if (sequence === undefined) {
             sequence = new Array(bp);
             for(let i=0; i<bp; i++) {
-                sequence[i] = randInt(4);
+                sequence[i] = base.base_to_number['T'];
             }
         } else if (sequence.length != bp) {
             let n = bp - sequence.length;
-            base.Logger.log(`sequence is too short, adding ${n} random bases`, base.Logger.WARNING);
+            base.Logger.log(`sequence is too short, adding ${n} thymine bases`, base.Logger.WARNING);
             while(n--) {
-                sequence.push(randInt(4))
+                sequence.push(
+                    base.base_to_number['T']
+                )
             }
         }
 
@@ -392,21 +390,21 @@ class StrandGenerator {
             pos = trypos;
             rw.push (pos)
         }
-        
+
         //  we get the a1 vectors in a smart way
         let a1s = [];
         d = rw[1].clone().sub(rw[0]);
         a1s.push(d.clone().divideScalar(Math.sqrt (d.dot(d))))
-        
+
         for (let i=1; i<rw.length-1; i++) {
             d = (rw[i + 1].clone().add(rw[i - 1])).multiplyScalar(0.5);
             d = rw[i].clone().sub(d);
             a1s.push(d.clone().divideScalar(Math.sqrt(d.dot(d))));
         }
-        
+
         d = rw[rw.length - 1].clone().sub(rw[rw.length - 2]);
         a1s.push (d.divideScalar(Math.sqrt(d.dot(d))));
-        
+
         let s = new base.Strand();
         for (let i=0; i<rw.length; i++) {
             let r = rw[i];
@@ -415,7 +413,7 @@ class StrandGenerator {
             let cm = r + a1s[i] * Math.abs(base.POS_BACK);
             s.add_nucleotide(new base.Nucleotide (cm, a1, a3, sequence[i]));
         }
-        
+
         return s;
     }
 }

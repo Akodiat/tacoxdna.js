@@ -402,7 +402,7 @@ function generate_vhelices_origami_sq(vhelix_direction, vhelix_perp, h) {
             helix_angles[i] = 1080 * Math.PI / 180 - total_sum;
         }
     }
-            
+
     //  make the virtual helices
     let pos: THREE.Vector3, direction: THREE.Vector3, perp: THREE.Vector3, rot: number, angles: number[];
     if (h.num % 2 === 0) {
@@ -578,7 +578,7 @@ class vhelix {
             //sys.exit(1);
         }
     }
-    
+
     toString() {
         let a = '{\n';
         a += '"stapLoop":[';
@@ -803,7 +803,7 @@ function loadCadnano(source_file: string, grid: string, scaffold_seq?: string, s
         }
 
         let nodes = build_nodes(h);
-        
+
         //  read the scaffold squares and add strands to slice_sys
         let i = 0;
         for (const s of h.scaf) {
@@ -1066,7 +1066,7 @@ function loadCadnano(source_file: string, grid: string, scaffold_seq?: string, s
                     joined_strand = joined_strand.append(slice_sys._strands[join[k]]);
                 }
             }
-                
+
             final_sys.add_strand(joined_strand);
 
             //  This is a bug fix. Ben 12/2/14
@@ -1115,7 +1115,7 @@ function loadCadnano(source_file: string, grid: string, scaffold_seq?: string, s
 
     let id_to_pos = new Map();
     //  fill in the _scaf and _stap dicts for the reverse vhelix_vbase_to_nucleotide object
-    
+
     for (const [vh, vb] of vh_vb2nuc_final._scaf.keys()) {
         let [strandii, nuciis] = vh_vb2nuc_final._scaf.get([vh, vb]);
         let rev_nuciis = [];
