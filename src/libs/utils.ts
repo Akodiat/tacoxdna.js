@@ -77,6 +77,32 @@ function randint(low: number, high?: number, size=1): number | number[] {
     return a;
 }
 
+function baseFromIUPAC(s: string, rna=false) {
+    const T = rna ? 'T' : 'U';
+    const r = (l: any[]) => l[Math.floor(Math.random()*l.length)];
+    return [...s].map(c=>{
+        if (['A', 'T', 'U', 'C', 'G'].includes(c)) {
+            return c
+        }
+        switch (c.toUpperCase()) {
+            case 'R': return r(['A', 'G']);         // Purine
+            case 'Y': return r(['C',  T ]);         // Pyrimindine
+            case 'M': return r(['A', 'C']);
+            case 'K': return r(['G',  T ]);
+            case 'S': return r(['C', 'G']);         // Strong
+            case 'W': return r(['A',  T ]);         // Week
+            case 'H': return r(['A', 'C',  T ]);    // Not G
+            case 'B': return r(['C', 'G',  T ]);    // Not A
+            case 'V': return r(['A', 'C', 'G']);    // Not U/T
+            case 'D': return r(['A', 'G',  T ]);    // Not C
+            case 'N': return r(['A', 'C', 'G', T]); // Ambiguous
+            default:
+                throw new Error(`Unknown base code ${c}`);
+                break;
+        }
+    }).join('')
+}
+
 //From https://stackoverflow.com/a/16436975
 function arraysEqual(a: any[], b: any[]) {
     if (a === b) return true;
@@ -183,4 +209,4 @@ function get_random_rotation_matrix() {
     return R;
 }
 
-export {sum, range, permutations, randint, arraysEqual, get_angle, get_orthonormalized_base, get_random_vector_in_sphere, get_random_vector, get_random_rotation_matrix};
+export {sum, range, permutations, randint, baseFromIUPAC, arraysEqual, get_angle, get_orthonormalized_base, get_random_vector_in_sphere, get_random_vector, get_random_rotation_matrix};

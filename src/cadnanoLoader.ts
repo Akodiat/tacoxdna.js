@@ -753,7 +753,7 @@ function getMostCommon(array) {
     }, []);
 }
 
-function loadCadnano(source_file: string, grid: string, scaffold_seq?: string, side?: number) {
+function loadCadnano(source_file: string, grid: string, scaffold_seq?: string, side?: number, singleStrandedFiller='N') {
     let origami_sq = false;
     let origami_he = false;
     if (grid === "sq") {
@@ -1251,6 +1251,19 @@ function loadCadnano(source_file: string, grid: string, scaffold_seq?: string, s
         n._base = scaffold_bases[scaffold_strand.N-nuc_i-1];
         if (n.pair) {
             n.pair._base = 3 - n._base;
+        }
+    }
+
+    for (let strandIdx=0; strandIdx<rev_sys._strands.length; strandIdx++) {
+        if (strandIdx !== scaffold_index) {
+            const s = rev_sys._strands[strandIdx];
+            for (let nuc_i=0; nuc_i<s.N; nuc_i++) {
+                let n = s._nucleotides[nuc_i];
+                // If we have a single-stranded base (not part of the scaffold)
+                if (!n.pair) {
+                    n._base = base.base_to_number[utils.baseFromIUPAC(singleStrandedFiller, false)]
+                }
+            }
         }
     }
 

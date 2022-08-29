@@ -59,6 +59,28 @@
                     </div>
                     <input class="form-control" type="text" placeholder="RANDOM" id="cadnano_scaffoldSeq">
                 </div>
+                <div class="input-group mb-3">
+                    <div class="input-group-prepend">
+                        <label class="input-group-text" for="cadnano_default_val">Default base</label>
+                    </div>
+                    <select class="form-select" id="cadnano_default_val">
+                        <option value="A">A</option>
+                        <option value="G">G</option>
+                        <option value="C">C</option>
+                        <option value="T">T</option>
+                        <option value="R">R (A or G)</option>
+                        <option value="Y">Y (C or T)</option>
+                        <option value="M">M (A or C)</option>
+                        <option value="K">K (G or T)</option>
+                        <option value="S">S (C or G)</option>
+                        <option value="W">W (A or T)</option>
+                        <option value="H">H (A or C or T)</option>
+                        <option value="B">B (C or G or T)</option>
+                        <option value="V">V (A or C or G)</option>
+                        <option value="D">D (A or G or T)</option>
+                        <option value="N" selected>N (A or C or G or T)</option>
+                    </select>
+                </div>
             </div>
             <div id="rpolyInputOpts" class="input-group-sm" hidden>
                 <div class="input-group mb-3">
@@ -197,7 +219,8 @@
             if (from === "cadnano") {
                 opts = {
                     grid: document.getElementById("cadnano_latticeType").value,
-                    sequence: document.getElementById("cadnano_scaffoldSeq").value
+                    sequence: document.getElementById("cadnano_scaffoldSeq").value,
+                    default_val: document.getElementById("cadnano_default_val").value
                 };
             } else if (from == "rpoly") {
                 opts = {

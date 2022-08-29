@@ -70,6 +70,7 @@ class StrandGenerator {
         if (typeof sequence === 'string') {
             try {
                 sequence = Array.from(sequence).map(c=>base.base_to_number[c]);
+                base.Logger.log(`We have a sequence already`, base.Logger.WARNING);
             }
             catch (e) {
                 base.Logger.die("Key Error: sequence is invalid")
@@ -78,6 +79,7 @@ class StrandGenerator {
         if (sequence === undefined) {
             sequence = new Array(bp);
             for(let i=0; i<bp; i++) {
+                base.Logger.log(`No sequence info, adding Thymine!`, base.Logger.WARNING);
                 sequence[i] = base.base_to_number['T'];
             }
         } else if (sequence.length != bp) {
